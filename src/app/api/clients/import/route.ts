@@ -64,8 +64,8 @@ function toStatus(raw: string): DelegatedStatus {
 }
 
 const rowSchema = z.object({
-  name: z.string().min(1),
-  tpin: z.string().min(1),
+  name: z.string().min(1, "Name is required"),
+  tpin: z.string().optional().nullable(),
   contact: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   ipAddress: z.string().optional().nullable(),
@@ -88,7 +88,6 @@ export async function POST(request: Request) {
     if (!file || typeof file === "string") return badRequest("No file uploaded");
     csvText = await (file as File).text();
   } else {
-    /* raw text body */
     csvText = await request.text().catch(() => "");
     if (!csvText.trim()) return badRequest("Empty CSV body");
   }
@@ -96,7 +95,6 @@ export async function POST(request: Request) {
   const rows = parseCsv(csvText);
   if (rows.length < 2) return badRequest("CSV must have a header row and at least one data row");
 
-  /* normalise header names: lowercase, strip spaces, underscores → camel */
   const rawHeaders = rows[0].map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"));
 
   const idx = {
@@ -109,8 +107,8 @@ export async function POST(request: Request) {
     delegated_status: rawHeaders.indexOf("delegated_status"),
   };
 
-  if (idx.name === -1 || idx.tpin === -1) {
-    return badRequest("CSV must contain at minimum 'name' and 'tpin' columns");
+  if (idx.name === -1) {
+    return badRequest("CSV must contain at minimum a 'name' column");
   }
 
   const get = (row: string[], i: number) => (i >= 0 ? row[i]?.trim() || null : null);
@@ -123,7 +121,7 @@ export async function POST(request: Request) {
 
     const raw = {
       name:            get(row, idx.name) ?? "",
-      tpin:            get(row, idx.tpin) ?? "",
+      tpin:            get(row, idx.tpin),
       contact:         get(row, idx.contact),
       address:         get(row, idx.address),
       ipAddress:       get(row, idx.ip_address),
