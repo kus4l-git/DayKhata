@@ -76,7 +76,7 @@ export const clients = pgTable(
     contact: varchar("contact", { length: 220 }),
     address: text("address"),
     ipAddress: varchar("ip_address", { length: 45 }),
-    tpin: varchar("tpin", { length: 100 }).notNull(),
+    tpin: varchar("tpin", { length: 100 }),
     delegatedTo: varchar("delegated_to", { length: 120 }),
     delegatedStatus: delegatedStatusEnum("delegated_status").notNull().default("UNASSIGNED"),
     delegatedLastActiveAt: timestamp("delegated_last_active_at", { withTimezone: true }),
